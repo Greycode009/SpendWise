@@ -52,7 +52,7 @@ The API tests need a separate, throwaway database whose name contains `test`:
 
 ```bash
 createdb spendwise_test                                  # or CREATE DATABASE spendwise_test;
-cp backend/.env.test.example backend/.env.test           # edit DATABASE_URL if needed
+cp backend/env.test.example backend/.env.test           # edit DATABASE_URL if needed
 npm test                                                 # shared + backend + frontend
 ```
 
