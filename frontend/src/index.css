@@ -1,0 +1,145 @@
+@import 'tailwindcss';
+
+/* Dark mode follows the .dark class on <html> (set from the theme setting). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans',
+    'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+
+  /* Brand: deep teal — calm, trustworthy, "money" without being loud */
+  --color-brand-50: #effcf9;
+  --color-brand-100: #c9f5ec;
+  --color-brand-200: #94eadb;
+  --color-brand-300: #57d8c5;
+  --color-brand-400: #29bfad;
+  --color-brand-500: #12a394;
+  --color-brand-600: #0c8378;
+  --color-brand-700: #0f6961;
+  --color-brand-800: #11544f;
+  --color-brand-900: #134641;
+  --color-brand-950: #042927;
+
+  /* Semantic money colours */
+  --color-income: #059669;
+  --color-expense: #e11d48;
+  --color-lent: #d97706;
+  --color-borrowed: #7c3aed;
+
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-float: 0 10px 30px -10px rgb(15 118 110 / 0.55);
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    -webkit-tap-highlight-color: transparent;
+  }
+  :root.dark {
+    color-scheme: dark;
+    --color-income: #34d399;
+    --color-expense: #fb7185;
+    --color-lent: #fbbf24;
+    --color-borrowed: #a78bfa;
+  }
+  html,
+  body {
+    @apply bg-slate-100 text-slate-900 antialiased dark:bg-[#0b1120] dark:text-slate-100;
+    overscroll-behavior-y: none;
+  }
+  body {
+    min-height: 100dvh;
+  }
+  input,
+  select,
+  textarea,
+  button {
+    font: inherit;
+  }
+  /* Keep the big amount input free of spinner arrows */
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl bg-white shadow-(--shadow-card) dark:bg-slate-900 dark:shadow-none dark:ring-1 dark:ring-white/5;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition
+      active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply bg-brand-600 text-white hover:bg-brand-700 dark:bg-brand-500 dark:text-slate-950 dark:hover:bg-brand-400;
+  }
+  .btn-secondary {
+    @apply bg-white text-slate-800 ring-1 ring-slate-200 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-700 dark:hover:bg-slate-700;
+  }
+  .btn-ghost {
+    @apply text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800;
+  }
+  .btn-danger {
+    @apply bg-rose-50 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:text-rose-300 dark:hover:bg-rose-500/20;
+  }
+  .field-label {
+    @apply mb-1.5 block text-xs font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-[15px] text-slate-900 placeholder:text-slate-400
+      focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15 focus:outline-none dark:border-slate-700 dark:bg-slate-950
+      dark:text-slate-100 dark:placeholder:text-slate-500;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium
+      text-slate-700 transition hover:border-slate-300 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300;
+  }
+  .chip-active {
+    @apply border-brand-600 bg-brand-50 text-brand-800 dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-200;
+  }
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.animate-sheet {
+  animation: sheet-up 180ms ease-out;
+}
+.animate-fade {
+  animation: fade-in 150ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-sheet,
+  .animate-fade {
+    animation: none;
+  }
+}

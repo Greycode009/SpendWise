@@ -1,0 +1,33 @@
+# Run the whole stack locally:  docker compose up --build
+# Then open http://localhost:4000
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: spendwise
+      POSTGRES_PASSWORD: spendwise
+      POSTGRES_DB: spendwise
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U spendwise']
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://spendwise:spendwise@db:5432/spendwise?schema=public
+      # Change this! Generate one with: openssl rand -base64 48
+      JWT_SECRET: ${JWT_SECRET:-please-change-this-to-a-long-random-secret-value}
+      NODE_ENV: production
+    ports:
+      - '4000:4000'
+
+volumes:
+  pgdata:

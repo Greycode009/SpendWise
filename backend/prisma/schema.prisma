@@ -1,0 +1,180 @@
+// SpendWise database schema (PostgreSQL + Prisma)
+//
+// Sync-related conventions used by every financial table:
+//   id              UUID generated on the CLIENT, so a record created offline
+//                   keeps the same identity after it reaches the server.
+//   clientUpdatedAt When the user made the change on their device. Used for
+//                   last-write-wins conflict resolution between devices.
+//   updatedAt       When the SERVER stored the change. Used as the cursor for
+//                   pulling changes (/sync/pull?since=...).
+//   deletedAt       Soft delete ("tombstone") so deletions can be synced to
+//                   other devices instead of silently disappearing.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+enum LoanDirection {
+  lent
+  borrowed
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique
+  passwordHash String
+  name         String
+  currency     String   @default("NPR")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  refreshTokens RefreshToken[]
+  categories    Category[]
+  transactions  Transaction[]
+  people        Person[]
+  loans         Loan[]
+  repayments    Repayment[]
+  syncOps       SyncOperation[]
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  userAgent String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id              String          @id @db.Uuid
+  userId          String          @db.Uuid
+  name            String
+  type            TransactionType
+  icon            String?
+  color           String?
+  isDefault       Boolean         @default(false)
+  clientUpdatedAt DateTime
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@index([userId, updatedAt])
+}
+
+model Transaction {
+  id              String          @id @db.Uuid
+  userId          String          @db.Uuid
+  type            TransactionType
+  amount          BigInt // minor units (paisa / cents)
+  categoryId      String?         @db.Uuid
+  date            DateTime        @db.Date
+  description     String?
+  paymentMethod   String?
+  note            String?
+  clientUpdatedAt DateTime
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([userId, updatedAt])
+  @@index([userId, date])
+}
+
+model Person {
+  id              String    @id @db.Uuid
+  userId          String    @db.Uuid
+  name            String
+  phone           String?
+  note            String?
+  clientUpdatedAt DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loans Loan[]
+
+  @@index([userId, updatedAt])
+}
+
+model Loan {
+  id              String        @id @db.Uuid
+  userId          String        @db.Uuid
+  personId        String        @db.Uuid
+  direction       LoanDirection
+  amount          BigInt // principal, minor units
+  date            DateTime      @db.Date
+  dueDate         DateTime?     @db.Date
+  note            String?
+  clientUpdatedAt DateTime
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  person     Person      @relation(fields: [personId], references: [id], onDelete: Cascade)
+  repayments Repayment[]
+
+  @@index([userId, updatedAt])
+  @@index([personId])
+}
+
+model Repayment {
+  id              String    @id @db.Uuid
+  userId          String    @db.Uuid
+  loanId          String    @db.Uuid
+  amount          BigInt // minor units
+  date            DateTime  @db.Date
+  note            String?
+  clientUpdatedAt DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loan Loan @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@index([userId, updatedAt])
+  @@index([loanId])
+}
+
+// Every sync operation a client sends has a unique opId. Remembering processed
+// opIds makes /sync/push idempotent: if the phone loses the response and sends
+// the same batch again, nothing is applied twice.
+model SyncOperation {
+  userId      String   @db.Uuid
+  opId        String   @db.Uuid
+  entity      String
+  recordId    String   @db.Uuid
+  action      String
+  result      String // applied | stale | rejected
+  error       String?
+  processedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, opId])
+  @@index([processedAt])
+}

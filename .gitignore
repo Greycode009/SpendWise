@@ -1,0 +1,9 @@
+node_modules/
+dist/
+dev-dist/
+.env
+.env.test
+*.log
+e2e/output/
+.DS_Store
+docs/.pdf-build.html
