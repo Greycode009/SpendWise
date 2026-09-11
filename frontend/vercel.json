@@ -1,8 +1,8 @@
 {
-  "framework": null,
+  "framework": "vite",
   "installCommand": "npm ci",
-  "buildCommand": "npm --workspace=frontend run build",
-  "outputDirectory": "frontend/dist",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
