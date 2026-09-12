@@ -1,14 +1,21 @@
-import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { CloudOff, ShieldCheck, Smartphone, Users } from 'lucide-react';
-import { CURRENCIES } from '@spendwise/shared';
-import Logo from '../components/Logo.jsx';
-import { TextField } from '../components/fields.jsx';
-import { Spinner } from '../components/ui.jsx';
-import { useOnline } from '../hooks/useOnline.js';
-import { useSession } from '../hooks/useSession.js';
-import { errorMessage } from '../services/api.js';
-import { login, register } from '../services/auth.js';
+import { useId, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  CloudOff,
+  Eye,
+  EyeOff,
+  ShieldCheck,
+  Smartphone,
+  Users,
+} from "lucide-react";
+import { CURRENCIES } from "@spendwise/shared";
+import Logo from "../components/Logo.jsx";
+import { TextField } from "../components/fields.jsx";
+import { Spinner } from "../components/ui.jsx";
+import { useOnline } from "../hooks/useOnline.js";
+import { useSession } from "../hooks/useSession.js";
+import { errorMessage } from "../services/api.js";
+import { login, register } from "../services/auth.js";
 
 function AuthShell({ title, subtitle, children, footer }) {
   const online = useOnline();
@@ -18,12 +25,26 @@ function AuthShell({ title, subtitle, children, footer }) {
         <div className="pointer-events-none absolute -right-24 -bottom-24 size-96 rounded-full bg-brand-400/20 blur-3xl" />
         <Logo textClass="text-white [&>span]:text-brand-200" />
         <div className="my-auto max-w-md space-y-6">
-          <h2 className="text-4xl leading-tight font-bold">Know where your money goes — even offline.</h2>
+          <h2 className="text-4xl leading-tight font-bold">
+            Know where your money goes — even offline.
+          </h2>
           <ul className="space-y-4 text-brand-100">
-            <li className="flex gap-3"><CloudOff className="size-5 shrink-0" /> Works without internet and syncs when you're back online.</li>
-            <li className="flex gap-3"><Users className="size-5 shrink-0" /> Track who owes you and whom you owe.</li>
-            <li className="flex gap-3"><Smartphone className="size-5 shrink-0" /> Install it on your Android phone like a real app.</li>
-            <li className="flex gap-3"><ShieldCheck className="size-5 shrink-0" /> Your records are private to your account.</li>
+            <li className="flex gap-3">
+              <CloudOff className="size-5 shrink-0" /> Works without internet
+              and syncs when you're back online.
+            </li>
+            <li className="flex gap-3">
+              <Users className="size-5 shrink-0" /> Track who owes you and whom
+              you owe.
+            </li>
+            <li className="flex gap-3">
+              <Smartphone className="size-5 shrink-0" /> Install it on your
+              Android phone like a real app.
+            </li>
+            <li className="flex gap-3">
+              <ShieldCheck className="size-5 shrink-0" /> Your records are
+              private to your account.
+            </li>
           </ul>
         </div>
       </div>
@@ -31,15 +52,56 @@ function AuthShell({ title, subtitle, children, footer }) {
         <div className="mx-auto w-full max-w-sm">
           <Logo className="mb-10 lg:hidden" />
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subtitle}</p>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            {subtitle}
+          </p>
           {!online && (
             <p className="mt-4 flex items-center gap-2 rounded-xl bg-amber-50 p-3 text-sm text-amber-800 dark:bg-amber-500/10 dark:text-amber-200">
-              <CloudOff className="size-4 shrink-0" /> You're offline. Signing in needs a connection the first time.
+              <CloudOff className="size-4 shrink-0" /> You're offline. Signing
+              in needs a connection the first time.
             </p>
           )}
           <div className="mt-6">{children}</div>
-          <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">{footer}</p>
+          <p className="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            {footer}
+          </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PasswordField({ label, value, onChange, autoComplete, required }) {
+  const id = useId();
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <div>
+      <label htmlFor={id} className="field-label">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          type={showPassword ? "text" : "password"}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          autoComplete={autoComplete}
+          required={required}
+          className="input pr-11"
+        />
+        <button
+          type="button"
+          aria-label={showPassword ? "Hide password" : "Show password"}
+          onClick={() => setShowPassword((s) => !s)}
+          className="absolute inset-y-0 right-3 flex items-center text-slate-500 transition hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+        >
+          {showPassword ? (
+            <EyeOff className="size-4" />
+          ) : (
+            <Eye className="size-4" />
+          )}
+        </button>
       </div>
     </div>
   );
@@ -49,11 +111,11 @@ export function Login() {
   const [params] = useSearchParams();
   const current = useSession();
   const navigate = useNavigate();
-  const [email, setEmail] = useState(current?.user?.email || '');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(current?.user?.email || "");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const reauth = params.get('reauth') && current?.expired;
+  const reauth = params.get("reauth") && current?.expired;
 
   async function submit(e) {
     e.preventDefault();
@@ -61,9 +123,9 @@ export function Login() {
     setLoading(true);
     try {
       await login(email.trim(), password);
-      navigate('/', { replace: true });
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(errorMessage(err, 'Could not sign in'));
+      setError(errorMessage(err, "Could not sign in"));
     } finally {
       setLoading(false);
     }
@@ -71,22 +133,53 @@ export function Login() {
 
   return (
     <AuthShell
-      title={reauth ? 'Sign in again' : 'Welcome back'}
-      subtitle={reauth ? 'Your session expired. Your unsynced changes are safe and will sync after you sign in.' : 'Sign in to your SpendWise account.'}
+      title={reauth ? "Sign in again" : "Welcome back"}
+      subtitle={
+        reauth
+          ? "Your session expired. Your unsynced changes are safe and will sync after you sign in."
+          : "Sign in to your SpendWise account."
+      }
       footer={
         <>
-          New here?{' '}
-          <Link to="/register" className="font-semibold text-brand-700 dark:text-brand-300">
+          New here?{" "}
+          <Link
+            to="/register"
+            className="font-semibold text-brand-700 dark:text-brand-300"
+          >
             Create an account
           </Link>
         </>
       }
     >
       <form className="space-y-4" onSubmit={submit} noValidate>
-        <TextField label="Email" type="email" value={email} onChange={setEmail} autoComplete="email" required />
-        <TextField label="Password" type="password" value={password} onChange={setPassword} autoComplete="current-password" required />
-        {error && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300" role="alert">{error}</p>}
-        <button type="submit" className="btn-primary btn w-full py-3" disabled={loading || !email || !password}>
+        <TextField
+          label="Email"
+          type="email"
+          value={email}
+          onChange={setEmail}
+          autoComplete="email"
+          required
+        />
+        <PasswordField
+          label="Password"
+          value={password}
+          onChange={setPassword}
+          autoComplete="current-password"
+          required
+        />
+        {error && (
+          <p
+            className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+        <button
+          type="submit"
+          className="btn-primary btn w-full py-3"
+          disabled={loading || !email || !password}
+        >
           {loading && <Spinner className="size-4" />} Sign in
         </button>
       </form>
@@ -96,7 +189,12 @@ export function Login() {
 
 export function Register() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', currency: 'NPR' });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    currency: "NPR",
+  });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const set = (k) => (v) => setForm((f) => ({ ...f, [k]: v }));
@@ -104,13 +202,18 @@ export function Register() {
   async function submit(e) {
     e.preventDefault();
     setError(null);
-    if (form.password.length < 8) return setError('Password must be at least 8 characters.');
+    if (form.password.length < 8)
+      return setError("Password must be at least 8 characters.");
     setLoading(true);
     try {
-      await register({ ...form, email: form.email.trim(), name: form.name.trim() });
-      navigate('/', { replace: true });
+      await register({
+        ...form,
+        email: form.email.trim(),
+        name: form.name.trim(),
+      });
+      navigate("/", { replace: true });
     } catch (err) {
-      setError(errorMessage(err, 'Could not create your account'));
+      setError(errorMessage(err, "Could not create your account"));
     } finally {
       setLoading(false);
     }
@@ -122,22 +225,49 @@ export function Register() {
       subtitle="Start tracking in under a minute."
       footer={
         <>
-          Already have an account?{' '}
-          <Link to="/login" className="font-semibold text-brand-700 dark:text-brand-300">
+          Already have an account?{" "}
+          <Link
+            to="/login"
+            className="font-semibold text-brand-700 dark:text-brand-300"
+          >
             Sign in
           </Link>
         </>
       }
     >
       <form className="space-y-4" onSubmit={submit} noValidate>
-        <TextField label="Your name" value={form.name} onChange={set('name')} autoComplete="name" required />
-        <TextField label="Email" type="email" value={form.email} onChange={set('email')} autoComplete="email" required />
-        <TextField label="Password" type="password" value={form.password} onChange={set('password')} autoComplete="new-password" required />
+        <TextField
+          label="Your name"
+          value={form.name}
+          onChange={set("name")}
+          autoComplete="name"
+          required
+        />
+        <TextField
+          label="Email"
+          type="email"
+          value={form.email}
+          onChange={set("email")}
+          autoComplete="email"
+          required
+        />
+        <PasswordField
+          label="Password"
+          value={form.password}
+          onChange={set("password")}
+          autoComplete="new-password"
+          required
+        />
         <div>
           <label className="field-label" htmlFor="currency">
             Currency
           </label>
-          <select id="currency" className="input" value={form.currency} onChange={(e) => set('currency')(e.target.value)}>
+          <select
+            id="currency"
+            className="input"
+            value={form.currency}
+            onChange={(e) => set("currency")(e.target.value)}
+          >
             {CURRENCIES.map((c) => (
               <option key={c.code} value={c.code}>
                 {c.code} — {c.label}
@@ -145,11 +275,24 @@ export function Register() {
             ))}
           </select>
         </div>
-        {error && <p className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300" role="alert">{error}</p>}
-        <button type="submit" className="btn-primary btn w-full py-3" disabled={loading || !form.name || !form.email || !form.password}>
+        {error && (
+          <p
+            className="rounded-xl bg-rose-50 p-3 text-sm text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"
+            role="alert"
+          >
+            {error}
+          </p>
+        )}
+        <button
+          type="submit"
+          className="btn-primary btn w-full py-3"
+          disabled={loading || !form.name || !form.email || !form.password}
+        >
           {loading && <Spinner className="size-4" />} Create account
         </button>
-        <p className="text-center text-xs text-slate-400">At least 8 characters. Passwords are stored securely hashed.</p>
+        <p className="text-center text-xs text-slate-400">
+          At least 8 characters. Passwords are stored securely hashed.
+        </p>
       </form>
     </AuthShell>
   );
